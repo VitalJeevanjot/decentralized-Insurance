@@ -1,4 +1,93 @@
 export default async ({ Vue }) => {
+  Vue.prototype.$agent_contract_code = `
+  
+contract MiddleAgents =
+
+    record state = {
+        agent: map(address, agent_record),
+        agent_by_id: map(int, address),
+        total_agents: int,
+        agents: list(address)
+        }
+
+    record agent_record = {
+        id : int,
+        name: string,
+        email : string,
+        mobile : string,
+        agent_address: address}
+    
+    stateful entrypoint init() = {
+        agent = {},
+        agent_by_id = {},
+        total_agents = 0,
+        agents = []
+      }
+
+
+    stateful entrypoint register_for_agent(_name: string, _email: string, _mobile: string) : bool =
+        require(String.length(_name) >= 5, "Require name with length greater than 4")
+        require(String.length(_email) >= 4, "Require email with length greater than 3")
+        require(String.length(_mobile) >= 8, "Require mobile with length greater than 7")
+
+        put(state{total_agents = state.total_agents + 1})
+        put(state{agent[Call.caller] = {id = state.total_agents, name = _name, email = _email, mobile = _mobile, agent_address = Call.caller}})
+        put(state{agent_by_id[state.total_agents] = Call.caller})
+        put(state{agents @ a = (Call.caller) :: a})
+        true
+
+    stateful entrypoint registered_agents() : list(address) =
+        state.agents
+    
+    stateful entrypoint agent_record(_address: address) : option(agent_record) =
+        Map.lookup(_address, state.agent)
+
+    stateful entrypoint total_agents () : int =
+        state.total_agents
+
+    stateful entrypoint contract_address() : address =
+        Contract.address
+
+  `
+  Vue.prototype.$client_contract_code = `
+  
+contract DigitalInsuranceClient =
+
+        record state = {
+            clients : map(address, client_info),
+            all_clients: list(address)
+         }
+        record client_info = { // individual record
+            name : string, // User name
+            email : string, // User documents
+            other_docs : string, // User documents
+            description: string // User statements
+            }
+        stateful entrypoint init() = {
+            clients = {},
+            all_clients = []
+         }
+        stateful entrypoint create_new_client(_name: string, _email: string, _other_docs: string, _description: string) : bool = 
+            let ci : client_info = {
+                name = _name,
+                email = _email,
+                other_docs = _other_docs,
+                description = _description
+             }
+            put(state{clients[Call.caller] = ci})
+            put(state{all_clients @ ac = (Call.caller) :: ac})
+            true
+
+        stateful entrypoint getClientInfo(_address: address) : option(client_info) =
+            Map.lookup(_address, state.clients)
+        
+        stateful entrypoint getAllRegisteredClients(): list(address) =
+          state.all_clients
+
+  `
+
+  Vue.prototype.$agent_contract_address = 'ct_2s2HCciiggoND6VrUnCiqhneZCv87bes3BZurpFgUECMVhSmGo'
+  Vue.prototype.$client_contract_address = 'ct_xNVk7UPC1TZUzra1VanQDCd251bgBH6S4TKLRXnaRm7KBKSu3'
   Vue.prototype.$contract_code = `contract DecentralizedInsurancePolicy =
 
     record policy_info = { // global record

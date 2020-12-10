@@ -7,15 +7,15 @@
         indicator-color="teal-9"
       >
         <q-tab name="policy_maker" label="Buy" />
-        <q-tab name="agent" label="Middleman" />
+        <q-tab name="agent" label="Middlemen" />
         <q-tab name="clients" label="Users" />
       </q-tabs>
 
     </div>
     <div class="row justify-center text-center q-pt-md">
       <q-card dark flat class="my-card" style="min-width: 300px; max-width: 90vw; background-color: #292B35;">
-          <q-tab-panels v-model="tab" animated style="background-color: #292B35; color: #55565D">
-              <q-tab-panel name="policy_maker" >
+        <q-tab-panels v-model="tab" animated style="background-color: #292B35; color: #55565D">
+        <q-tab-panel name="policy_maker" >
         <q-card-section>
           <div class="row justify-center text-grey-2 text-h5">Policy Maker</div>
           <div class="row justify-center">
@@ -77,17 +77,57 @@
               </q-card-section>
             </q-card>
           </div>
+          <div class="row">
+            <q-page-sticky position="bottom" :offset="[0, 80]">
+              <q-btn fab icon="add" color="teal-5">
+                <q-tooltip>
+                   Create New Policy
+                </q-tooltip>
+              </q-btn>
+            </q-page-sticky>
+          </div>
         </q-card-section>
 
           </q-tab-panel>
             <q-tab-panel name="agent">
-              <div class="text-h6">Alarms</div>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
+              <q-card-section>
+              <div class="text-h6 text-grey-2">Middlemen</div>
+                Listing all agents ({{total_aganets}})
+              </q-card-section>
+              <q-card-section>
+               <q-list>
+                  <q-item class="text-left text-grey-3" v-for="agent in all_agents" :key="agent">
+                    <q-item-section>
+                      <q-item-label>{{agent}}</q-item-label>
+                    </q-item-section>
+
+                    <q-item-section side top>
+                      <q-icon name="star" color="yellow" />
+                    </q-item-section>
+                  </q-item>
+               </q-list>
+              </q-card-section>
             </q-tab-panel>
 
             <q-tab-panel name="clients">
-              <div class="text-h6">Movies</div>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
+              <q-card-section>
+
+              <div class="text-h6 text-grey-2">Clients</div>
+              Listing All Registered Clients
+              </q-card-section>
+              <q-card-section>
+               <q-list>
+                  <q-item class="text-left text-grey-3" v-for="client in all_clients" :key="client">
+                    <q-item-section>
+                      <q-item-label>{{client}}</q-item-label>
+                    </q-item-section>
+
+                    <q-item-section side top>
+                      <q-icon name="money" color="green" />
+                    </q-item-section>
+                  </q-item>
+               </q-list>
+              </q-card-section>
             </q-tab-panel>
           </q-tab-panels>
     </q-card>
@@ -107,6 +147,8 @@ export default {
       rpc_client: null,
       network_id: null,
       contract: null,
+      contract_agent: null,
+      contract_client: null,
       tab: 'policy_maker',
       policy_id: null,
       policy_uid: null,
@@ -114,10 +156,20 @@ export default {
       investment: null,
       agent: null,
       status: null,
-      expires_in: null
+      expires_in: null,
+      all_agents: null,
+      total_aganets: null,
+      all_clients: null
     }
   },
   methods: {
+    async getAllAgents () {
+      this.all_agents = (await this.contract_agent.methods.registered_agents.get()).decodedResult
+      this.total_aganets = this.all_agents.length
+    },
+    async getAllClients () {
+      this.all_clients = (await this.contract_client.methods.getAllRegisteredClients.get()).decodedResult
+    },
     async queryPolicy () {
       if (this.policy_id === null) {
         this.$q.notify('Please add policy id first')
@@ -143,6 +195,11 @@ export default {
         this.network_id = networkId
         console.log(this.network_id)
         this.contract = await this.client.getContractInstance(this.$contract_code, { contractAddress: this.$contract_address })
+        this.contract_agent = await this.client.getContractInstance(this.$agent_contract_code, { contractAddress: this.$agent_contract_address })
+        this.contract_client = await this.client.getContractInstance(this.$client_contract_code, { contractAddress: this.$client_contract_address })
+
+        this.getAllAgents()
+        this.getAllClients()
         return true
       } catch (e) {
         console.error(e)
