@@ -14,26 +14,13 @@
     </div>
     <div class="row justify-center text-center q-pt-md">
       <q-card dark flat class="my-card" style="min-width: 300px; max-width: 90vw; background-color: #292B35;">
-        <q-card-section>
-
           <q-tab-panels v-model="tab" animated style="background-color: #292B35; color: #55565D">
               <q-tab-panel name="policy_maker" >
-                <div class="row justify-center text-grey-2 text-h5">Policy Maker</div>
-                <div class="row justify-center">
-                  Get policy details
-                </div>
-              </q-tab-panel>
-
-              <q-tab-panel name="agent">
-                <div class="text-h6">Alarms</div>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              </q-tab-panel>
-
-              <q-tab-panel name="clients">
-                <div class="text-h6">Movies</div>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              </q-tab-panel>
-            </q-tab-panels>
+        <q-card-section>
+          <div class="row justify-center text-grey-2 text-h5">Policy Maker</div>
+          <div class="row justify-center">
+            Get policy details
+          </div>
         </q-card-section>
         <q-card-section>
           <q-input label-color="grey-2" input-style="color:#F5F5F5" color="teal-9" filled v-model="policy_id" label="User address">
@@ -45,6 +32,64 @@
         <q-card-section>
           <q-btn color="teal-6" label="Query" @click="queryPolicy"/>
         </q-card-section>
+        <q-card-section>
+          <div class="row">
+            <q-card class="my-card text-grey-2 q-ma-sm" style="background-color: #383b49; width: 120px">
+              <q-card-section>
+                <div class="text-subtitle2" style="color: #7e849e;">Policy Id</div>
+                <div class="text-caption">{{policy_uid}}</div>
+              </q-card-section>
+            </q-card>
+             <q-card class="my-card text-grey-2 q-ma-sm" style="background-color: #383b49; width: 120px">
+              <q-card-section>
+                <div class="text-subtitle2" style="color: #7e849e;">Premium</div>
+                <div class="text-caption">{{premium}}</div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+           <div class="row">
+            <q-card class="my-card text-grey-2 q-ma-sm" style="background-color: #383b49; width: 120px">
+              <q-card-section>
+                <div class="text-subtitle2" style="color: #7e849e;">Investment</div>
+                <div class="text-caption">{{investment}}</div>
+              </q-card-section>
+            </q-card>
+             <q-card class="my-card text-grey-2 q-ma-sm" style="background-color: #383b49; width: 120px">
+              <q-card-section>
+                <div class="text-subtitle2" style="color: #7e849e;">Agent</div>
+                <div class="text-caption ellipsis">{{agent}}</div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+           <div class="row">
+            <q-card class="my-card text-grey-2 q-ma-sm" style="background-color: #383b49; width: 120px">
+              <q-card-section>
+                <div class="text-subtitle2" style="color: #7e849e;">Status</div>
+                <div class="text-caption">{{status}}</div>
+              </q-card-section>
+            </q-card>
+             <q-card class="my-card text-grey-2 q-ma-sm" style="background-color: #383b49; width: 120px">
+              <q-card-section>
+                <div class="text-subtitle2" style="color: #7e849e;">Expire In</div>
+                <div class="text-caption">{{expires_in}}</div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </q-card-section>
+
+          </q-tab-panel>
+            <q-tab-panel name="agent">
+              <div class="text-h6">Alarms</div>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit.
+            </q-tab-panel>
+
+            <q-tab-panel name="clients">
+              <div class="text-h6">Movies</div>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit.
+            </q-tab-panel>
+          </q-tab-panels>
     </q-card>
     </div>
   </q-page>
@@ -63,18 +108,31 @@ export default {
       network_id: null,
       contract: null,
       tab: 'policy_maker',
-      policy_id: null
+      policy_id: null,
+      policy_uid: null,
+      premium: null,
+      investment: null,
+      agent: null,
+      status: null,
+      expires_in: null
     }
   },
   methods: {
     async queryPolicy () {
-      if (this.policy_id == null) {
+      if (this.policy_id === null) {
         this.$q.notify('Please add policy id first')
         return
       }
       try {
         const details = await this.contract.methods.get_policy_details_of.get(this.policy_id)
-        console.log(details.decodedResult)
+        const decodedDetails = details.decodedResult
+        console.log(decodedDetails)
+        this.policy_uid = decodedDetails.id_of_policy_taken
+        this.premium = decodedDetails.premium
+        this.investment = decodedDetails.invested_amount
+        this.agent = decodedDetails.middle_agent
+        this.status = decodedDetails.status
+        this.expires_in = decodedDetails.expire_in
       } catch (e) {
         console.log('hi')
       }
